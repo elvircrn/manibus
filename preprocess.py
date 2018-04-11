@@ -3,23 +3,30 @@ import numpy as np
 import helpers
 import data
 
+
+def split(faces, labels, set_distribution=data.SET_DISTRIBUTION):
+    datasets = list(zip(helpers.perc_split(faces, set_distribution), helpers.perc_split(labels, set_distribution)))
+    return datasets
+
+
 def preprocess():
     train_df = pd.read_csv(data.TRAIN_DATASET_PATH)
     test_df = pd.read_csv(data.TEST_DATASET_PATH)
 
-    dataset = train_df.append(test_df)
+    dataset = train_df.append(test_df).as_matrix().astype(np.float32)
 
-    print()
-
-    dataset = dataset.shuffle()
-    dataset = helpers.perc_split(dataset, data.percentages) 
-    labels = (np.matrix(dataset.as_matrix().astype(np.float32)).T)[0]
+    labels = (dataset.T)[0]
     features = ((dataset.T)[1:]).T
 
-    helpers.unison_shuffled_copies(dataset, data.SET_DISTRIBUTION)
+    features, labels = helpers.unison_shuffled_copies(features, labels)
+    one_hot_labels = np.zeros((len(labels), data.N_CLASSES), dtype=np.float32)
+    print(one_hot_labels[0][0])
+    print(one_hot_labels.shape)
+    one_hot_labels[np.arange(len(labels)), labels.astype(np.int32)] = 1
+    datasets = split(features, one_hot_labels)
+
+    return datasets
 
 
 def get_dataset():
     return preprocess()
-
-

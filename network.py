@@ -1,13 +1,20 @@
-import tensorflow as tf
 import numpy as np
-import matplotlib as plt
-
-from tensorflow.contrib import slim
+import tensorflow as tf
 from tensorflow.contrib.learn import ModeKeys
 from tensorflow.contrib.learn import learn_runner
 
-import data
 import architectures as arch
+import data
+import preprocess
+
+
+def get_run_config(model_id=None):
+    if model_id is None:
+        run_config = tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir)
+    else:
+        run_config = tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir + str(model_id))
+    return run_config
+
 
 # Run only once in main
 def initialize_flags():
@@ -18,7 +25,8 @@ def initialize_flags():
 
 
 def get_flags():
-    return tf.app.flags.FLAGS 
+    return tf.app.flags.FLAGS
+
 
 def run_and_get_loss(params, run_config):
     runner = learn_runner.run(
@@ -28,7 +36,6 @@ def run_and_get_loss(params, run_config):
         hparams=params
     )
     return runner[0]['loss']
-
 
 
 def get_experiment_params():
@@ -47,12 +54,15 @@ def optimize():
     run_config = tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir)
     run_and_get_loss(params, run_config)
 
+
 def eager_hack():
     params = get_experiment_params()
     params.train_steps = 1
-    run_and_get_loss(params, get_run_config()) 
+    run_and_get_loss(params, get_run_config())
+
 
 mid = 0
+
 
 def objective(args):
     # TODO: Refactor later
@@ -105,6 +115,7 @@ def get_estimator(run_config=None, params=None):
         config=run_config  # RunConfig
     )
 
+
 def model_fn(features, labels, mode, params):
     is_training = mode == ModeKeys.TRAIN
     # Define model's architecture
@@ -128,6 +139,7 @@ def model_fn(features, labels, mode, params):
         eval_metric_ops=eval_metric_ops
     )
 
+
 def get_train_op_fn(loss, params):
     return tf.contrib.layers.optimize_loss(
         loss=loss,
@@ -136,6 +148,7 @@ def get_train_op_fn(loss, params):
         optimizer=tf.train.AdamOptimizer,
         learning_rate=params.learning_rate
     )
+
 
 def f_score(predictions=None, labels=None, weights=None):
     p, update_op1 = tf.contrib.metrics.streaming_precision(predictions, labels)
@@ -165,6 +178,7 @@ def get_eval_metric_ops(labels, predictions):
     }
 
     return eval_dict
+
 
 class IteratorInitializerHook(tf.train.SessionRunHook):
     """Hook to initialise data iterator after Session is created."""
@@ -209,6 +223,7 @@ def get_train_inputs(batch_size, datasets):
     # Return function and hook
     return train_inputs, iterator_initializer_hook
 
+
 def get_test_inputs(batch_size, datasets):
     iterator_initializer_hook = IteratorInitializerHook()
 
@@ -242,6 +257,7 @@ def get_test_inputs(batch_size, datasets):
 def run_experiment(argv=None):
     optimize()
 
+
 def run_network():
     enable_gpu = False
 
@@ -256,6 +272,7 @@ def run_network():
         tf.app.run(
             main=run_experiment
         )
+
 
 def predict(estimator, images):
     images = np.reshape(images, [-1, data.IMAGE_HEIGHT, data.IMAGE_WIDTH, 1]).astype(dtype=np.float32)
