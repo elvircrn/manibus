@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import helpers
 import data
+from sklearn.preprocessing import normalize
 
 
 def split(faces, labels, set_distribution=data.SET_DISTRIBUTION):
@@ -17,6 +18,8 @@ def preprocess():
 
     labels = (dataset.T)[0]
     features = ((dataset.T)[1:]).T
+
+    features = normalize(features, axis=0, norm='max')
 
     features, labels = helpers.unison_shuffled_copies(features, labels)
     one_hot_labels = np.zeros((len(labels), data.N_CLASSES), dtype=np.float32)

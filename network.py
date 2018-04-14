@@ -19,6 +19,7 @@ def get_run_config(model_id=None):
 # Run only once in main
 def initialize_flags():
     tf.logging.set_verbosity(tf.logging.DEBUG)
+    FLAGS = tf.app.flags.FLAGS
     tf.app.flags.DEFINE_string(
         flag_name='model_dir', default_value=data.MODEL_DIR,
         docstring='Output directory for model and training stats.')
@@ -207,7 +208,7 @@ def get_train_inputs(batch_size, datasets):
             dataset = tf.contrib.data.Dataset.from_tensor_slices(
                 (images_placeholder, labels_placeholder))
             dataset = dataset.repeat(None)  # Infinite iterations
-            dataset = dataset.shuffle(buffer_size=10000)
+            dataset = dataset.shuffle(buffer_size=100)
             dataset = dataset.batch(batch_size)
             iterator = dataset.make_initializable_iterator()
             next_example, next_label = iterator.get_next()

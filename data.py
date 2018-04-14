@@ -9,7 +9,7 @@ TEST_DATASET_PATH = 'data/sign_mnist_test.csv'
 
 
 # TODO: Start using relative path
-MODEL_DIR = os.path.abspath("data/log")
+MODEL_DIR = os.path.abspath('data/log0')
 
 DEFAULT_SCOPE = 'ManibusConv'
 
