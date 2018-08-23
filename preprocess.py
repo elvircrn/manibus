@@ -1,35 +1,50 @@
-import pandas as pd
 import numpy as np
-import helpers
+import pandas as pd
+
 import data
-from sklearn.preprocessing import normalize
+import helpers
 
 
-def split(faces, labels, set_distribution=data.SET_DISTRIBUTION):
-    datasets = list(zip(helpers.perc_split(faces, set_distribution), helpers.perc_split(labels, set_distribution)))
+def split(features, labels, set_distribution=data.SET_DISTRIBUTION):
+    datasets = list(zip(helpers.perc_split(features, set_distribution), helpers.perc_split(labels, set_distribution)))
     return datasets
 
 
-def preprocess():
-    train_df = pd.read_csv(data.TRAIN_DATASET_PATH)
-    test_df = pd.read_csv(data.TEST_DATASET_PATH)
+def convert_boxes(img_count, boxes_raw):
+    # Center b_x and b_y, leave width and height as is
+    img_w, img_h = 640, 360
+    stride = 40
+    stride_w, stride_h = int(img_w / stride) + 1, int(img_h / stride) + 1
+    anchors = 1
+    new_boxes = np.zeros((img_count, stride_w, stride_h, anchors * 6))
+    for box_raw in boxes_raw.values:
+        img_id = box_raw[0]
+        if img_count == img_id:
+            break
+        box = box_raw[1:]
+        box[0] = box[0] + box[2] / 2
+        box[1] = box[1] + box[3] / 2
 
-    dataset = train_df.append(test_df).as_matrix().astype(np.float32)
+        padded = np.c_[1, box.reshape(1, 4), 1]
+        new_boxes[int(img_id), int(box[0] / stride), int(box[1] / stride)] = np.tile(padded, anchors)
+    return new_boxes
 
-    labels = (dataset.T)[0]
-    features = ((dataset.T)[1:]).T
 
-    features = normalize(features, axis=0, norm='max')
+def preprocess_ego():
+    images_raw = pd.read_csv('data/egohands_data/images.csv', nrows=500, header=None, index_col=None, na_filter=False,
+                             dtype=np.float64, low_memory=False)
+    images = images_raw.values[:, 3:]
 
-    features, labels = helpers.unison_shuffled_copies(features, labels)
-    one_hot_labels = np.zeros((len(labels), data.N_CLASSES), dtype=np.float32)
-    print(one_hot_labels[0][0])
-    print(one_hot_labels.shape)
-    one_hot_labels[np.arange(len(labels)), labels.astype(np.int32)] = 1
-    datasets = split(features, one_hot_labels)
+    # boxes_raw.groupby(by=0).size().max() ~ 4
+    boxes_raw = pd.read_csv('data/egohands_data/boxes.csv', header=None, index_col=None, na_filter=False,
+                            dtype=np.float64,
+                            low_memory=False)
 
-    return datasets
+    boxes = convert_boxes(images.shape[0], boxes_raw)
+
+    return split(*helpers.unison_shuffled_copies(images, boxes))
 
 
 def get_dataset():
-    return preprocess()
+    # return preprocess()
+    return preprocess_ego()

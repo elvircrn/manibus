@@ -19,7 +19,6 @@ def get_run_config(model_id=None):
 # Run only once in main
 def initialize_flags():
     tf.logging.set_verbosity(tf.logging.DEBUG)
-    FLAGS = tf.app.flags.FLAGS
     tf.app.flags.DEFINE_string(
         flag_name='model_dir', default_value=data.MODEL_DIR,
         docstring='Output directory for model and training stats.')
@@ -42,10 +41,9 @@ def run_and_get_loss(params, run_config):
 def get_experiment_params():
     return tf.contrib.training.HParams(
         learning_rate=0.00002,
-        n_classes=data.N_CLASSES,
         train_steps=90000,
         min_eval_frequency=50,
-        architecture=arch.mini_vgg,
+        architecture=arch.yolo_arch,
         dropout=0.6
     )
 
@@ -117,27 +115,62 @@ def get_estimator(run_config=None, params=None):
     )
 
 
+def calculate_loss(labels, predictions):
+    def x_i(t):
+        return tf.slice(t, [0, 0, 0, 0], [-1, -1, -1, 1])
+
+    def y_i(t):
+        return tf.slice(t, [0, 0, 0, 1], [-1, -1, -1, 1])
+
+    def w_i(t):
+        return tf.slice(t, [0, 0, 0, 2], [-1, -1, -1, 1])
+
+    def h_i(t):
+        return tf.slice(t, [0, 0, 0, 3], [-1, -1, -1, 1])
+
+    def c_i(t):
+        return tf.slice(t, [0, 0, 0, 4], [-1, -1, -1, 1])
+
+    predictions = tf.Print(predictions, [predictions], "predictions: ", summarize=1000)
+
+    obj = tf.reduce_sum(labels, 3)
+    obj = tf.cast(tf.greater(obj, 0), dtype=tf.float64)
+    obj = tf.reshape(obj, [-1, 17, 10, 1])
+    noobj = tf.subtract(tf.constant(1, dtype=tf.float64), obj)
+
+    center_loss = tf.reduce_sum(
+        tf.multiply(obj, tf.add(tf.square(tf.subtract(x_i(labels), x_i(predictions))),
+                                tf.square(tf.subtract(y_i(labels), y_i(predictions))))))
+
+    size_loss = tf.reduce_sum(
+        tf.multiply(obj, tf.add(tf.square(tf.subtract(tf.sqrt(w_i(labels)), tf.sqrt(w_i(predictions)))),
+                                tf.square(tf.subtract(tf.sqrt(h_i(labels)), tf.sqrt(h_i(predictions)))))))
+
+    classification_loss = tf.add(
+        tf.reduce_sum(tf.multiply(obj, tf.square(tf.subtract(c_i(labels), c_i(predictions))))),
+        tf.reduce_sum(tf.multiply(noobj, tf.square(tf.subtract(c_i(labels), c_i(predictions))))))
+
+    loss = tf.add(center_loss, size_loss)
+    loss = tf.add(loss, classification_loss)
+
+    return loss
+
+
 def model_fn(features, labels, mode, params):
     is_training = mode == ModeKeys.TRAIN
     # Define model's architecture
-    logits = params.architecture(inputs=features, dropout=params.dropout, is_training=is_training)
-    predictions = tf.argmax(logits, axis=1)
+    predictions = params.architecture(inputs=features, dropout=params.dropout, is_training=is_training)
     # Loss, training and eval operations are not needed during inference.
     loss = None
     train_op = None
-    eval_metric_ops = {}
     if mode != ModeKeys.INFER:
-        loss = tf.losses.softmax_cross_entropy(
-            labels,
-            logits=logits)
+        loss = calculate_loss(labels, predictions)
         train_op = get_train_op_fn(loss, params)
-        eval_metric_ops = get_eval_metric_ops(labels, predictions)
     return tf.estimator.EstimatorSpec(
         mode=mode,
         predictions=predictions,
         loss=loss,
-        train_op=train_op,
-        eval_metric_ops=eval_metric_ops
+        train_op=train_op
     )
 
 
@@ -158,29 +191,6 @@ def f_score(predictions=None, labels=None, weights=None):
     return 2 * (p * r) / (p + r + eps), tf.group(update_op1, update_op2)
 
 
-def get_eval_metric_ops(labels, predictions):
-    argmax_labels = tf.argmax(input=labels, axis=1)
-
-    eval_dict = {
-        'Accuracy': tf.metrics.accuracy(
-            labels=argmax_labels,
-            predictions=predictions,
-            name='accuracy'),
-        'Precision': tf.metrics.precision(
-            labels=argmax_labels,
-            predictions=predictions,
-            name='precision'
-        ),
-        'Recall': tf.metrics.recall(
-            labels=argmax_labels,
-            predictions=predictions,
-            name='recall'
-        )
-    }
-
-    return eval_dict
-
-
 class IteratorInitializerHook(tf.train.SessionRunHook):
     """Hook to initialise data iterator after Session is created."""
 
@@ -198,14 +208,14 @@ def get_train_inputs(batch_size, datasets):
 
     def train_inputs():
         with tf.name_scope(data.TRAINING_SCOPE):
-            images = datasets[0][0].reshape([-1, data.IMAGE_HEIGHT, data.IMAGE_WIDTH, 1])
+            images = datasets[0][0].reshape([-1, data.IMAGE_WIDTH, data.IMAGE_HEIGHT, 1])
             labels = datasets[0][1]
             images_placeholder = tf.placeholder(
                 images.dtype, images.shape)
             labels_placeholder = tf.placeholder(
                 labels.dtype, labels.shape)
             # Build dataset iterator
-            dataset = tf.contrib.data.Dataset.from_tensor_slices(
+            dataset = tf.data.Dataset.from_tensor_slices(
                 (images_placeholder, labels_placeholder))
             dataset = dataset.repeat(None)  # Infinite iterations
             dataset = dataset.shuffle(buffer_size=100)
@@ -230,7 +240,7 @@ def get_test_inputs(batch_size, datasets):
 
     def test_inputs():
         with tf.name_scope(data.TEST_SCOPE):
-            images = datasets[1][0].reshape([-1, data.IMAGE_HEIGHT, data.IMAGE_WIDTH, 1])
+            images = datasets[1][0].reshape([-1, data.IMAGE_WIDTH, data.IMAGE_HEIGHT, 1])
             labels = datasets[1][1]
             # Define placeholders
             images_placeholder = tf.placeholder(
@@ -238,7 +248,7 @@ def get_test_inputs(batch_size, datasets):
             labels_placeholder = tf.placeholder(
                 labels.dtype, labels.shape)
             # Build dataset iterator
-            dataset = tf.contrib.data.Dataset.from_tensor_slices(
+            dataset = tf.data.Dataset.from_tensor_slices(
                 (images_placeholder, labels_placeholder))
             dataset = dataset.batch(batch_size)
             iterator = dataset.make_initializable_iterator()
