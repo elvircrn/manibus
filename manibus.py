@@ -1,7 +1,10 @@
+import sys
+
 import numpy as np
 import pandas as pd
 from PIL import Image, ImageDraw
 
+import data
 import network
 
 
@@ -21,8 +24,6 @@ def experiment():
     img.save('image.png')
 
 
-# ImageDraw.Draw(resized)
-
-# plt.imshow(images[0].reshape(640, 360))
-
-network.run_network()
+if __name__ == '__main__':
+    data_path = sys.argv[0] if len(sys.argv) > 0 else data.DATA_PATH
+    network.run_network(data_path)

@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 
@@ -30,13 +32,14 @@ def convert_boxes(img_count, boxes_raw):
     return new_boxes
 
 
-def preprocess_ego():
-    images_raw = pd.read_csv('data/egohands_data/images.csv', nrows=500, header=None, index_col=None, na_filter=False,
+def preprocess_ego(data_path=data.DATA_PATH):
+    images_raw = pd.read_csv(os.path.join(data_path, data.RAW_IMAGES), nrows=500, header=None, index_col=None,
+                             na_filter=False,
                              dtype=np.float64, low_memory=False)
     images = images_raw.values[:, 3:]
 
     # boxes_raw.groupby(by=0).size().max() ~ 4
-    boxes_raw = pd.read_csv('data/egohands_data/boxes.csv', header=None, index_col=None, na_filter=False,
+    boxes_raw = pd.read_csv(os.path.join(data_path, data.RAW_LABELS), header=None, index_col=None, na_filter=False,
                             dtype=np.float64,
                             low_memory=False)
 
@@ -45,6 +48,5 @@ def preprocess_ego():
     return split(*helpers.unison_shuffled_copies(images, boxes))
 
 
-def get_dataset():
-    # return preprocess()
-    return preprocess_ego()
+def get_dataset(data_path=data.DATA_PATH):
+    return preprocess_ego(data_path)

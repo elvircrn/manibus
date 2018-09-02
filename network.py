@@ -38,20 +38,16 @@ def run_and_get_loss(params, run_config):
     return runner[0]['loss']
 
 
-def get_experiment_params():
+def get_experiment_params(data_path=data.DATA_PATH):
     return tf.contrib.training.HParams(
         learning_rate=0.00002,
         train_steps=90000,
         min_eval_frequency=50,
         architecture=arch.yolo_arch,
-        dropout=0.6
+        dropout=0.6,
+        run_preprocess=True,
+        data_path=data_path
     )
-
-
-def optimize():
-    params = get_experiment_params()
-    run_config = tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir)
-    run_and_get_loss(params, run_config)
 
 
 def eager_hack():
@@ -82,7 +78,8 @@ def experiment_fn(run_config, params):
         save_checkpoints_steps=params.min_eval_frequency)
     estimator = get_estimator(run_config, params)
     # Setup data loaders
-    datasets = preprocess.get_dataset()
+    datasets = preprocess.get_dataset(params.data_path) if params.run_preprocess else preprocess.preprocess_ego(
+        params.data_path)
 
     train_input_fn, train_input_hook = get_train_inputs(
         batch_size=64, datasets=datasets)
@@ -266,22 +263,26 @@ def get_test_inputs(batch_size, datasets):
 
 
 def run_experiment(argv=None):
-    optimize()
+    params = get_experiment_params(data_path=argv[0])
+    run_config = tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir)
+    run_and_get_loss(params, run_config)
 
 
-def run_network():
+def run_network(data_path=data.DATA_PATH):
     enable_gpu = False
 
     if enable_gpu:
         with tf.device("/gpu:0"):
             initialize_flags()
             tf.app.run(
-                main=run_experiment
+                main=run_experiment,
+                argv=data_path
             )
     else:
         initialize_flags()
         tf.app.run(
-            main=run_experiment
+            main=run_experiment,
+            argv=data_path
         )
 
 
