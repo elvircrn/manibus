@@ -132,8 +132,6 @@ def calculate_loss(labels, predictions):
     def c_i(t):
         return tf.slice(t, [0, 0, 0, 4], [-1, -1, -1, 1])
 
-    predictions = tf.Print(predictions, [predictions], "predictions: ", summarize=1000)
-
     obj = tf.reduce_sum(labels, 3)
     obj = tf.cast(tf.greater(obj, 0), dtype=tf.float64)
     obj = tf.reshape(obj, [-1, 17, 10, 1])
