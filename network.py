@@ -3,6 +3,8 @@ import tensorflow as tf
 from tensorflow.contrib.learn import ModeKeys
 from tensorflow.contrib.learn import learn_runner
 
+from tensorflow.python.client import device_lib
+
 import architectures as arch
 import data
 import preprocess
@@ -268,10 +270,16 @@ def run_experiment(argv=None):
     run_and_get_loss(params, run_config)
 
 
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+
 def run_network(data_path=data.DATA_PATH):
     enable_gpu = True
 
     if enable_gpu:
+        print('Available GPUs: ', get_available_gpus())
         with tf.device("/gpu:0"):
             initialize_flags()
             tf.app.run(
