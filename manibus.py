@@ -25,5 +25,6 @@ def experiment():
 
 
 if __name__ == '__main__':
-    data_path = sys.argv[0] if len(sys.argv) > 0 else data.DATA_PATH
+    data_path = sys.argv[1] if len(sys.argv) > 1 else data.DATA_PATH
+    print('Data path: ', data_path)
     network.run_network(data_path)
