@@ -269,7 +269,7 @@ def run_experiment(argv=None):
 
 
 def run_network(data_path=data.DATA_PATH):
-    enable_gpu = False
+    enable_gpu = True
 
     if enable_gpu:
         with tf.device("/gpu:0"):
