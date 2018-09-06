@@ -83,7 +83,7 @@ def yolo_arch_fast(inputs, is_training, dropout, scope=data.DEFAULT_SCOPE):
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout5')
             # 20x11
 
-            net = slim.conv2d(net, 6, [4, 1], padding='VALID', scope='conv6')
+            net = slim.conv2d(net, 6, [4, 2], padding='VALID', scope='conv6')
             # net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout6')
             # 17x10
 
