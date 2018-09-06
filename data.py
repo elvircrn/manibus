@@ -11,7 +11,7 @@ DEFAULT_SCOPE = 'ManibusConv'
 
 RAW_IMAGES = 'images.csv'
 RAW_LABELS = 'boxes.csv'
-DATA_PATH = 'data/ego_hand'
+DATA_PATH = 'data/egohands_data'
 
 TRAINING_SCOPE = 'Training_data'
 TEST_SCOPE = 'Test_data'

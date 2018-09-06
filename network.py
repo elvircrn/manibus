@@ -282,7 +282,7 @@ def run_network(data_path=data.DATA_PATH):
         initialize_flags()
         tf.app.run(
             main=run_experiment,
-            argv=data_path
+            argv=[data_path]
         )
 
 
