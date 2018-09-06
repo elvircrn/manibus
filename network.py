@@ -80,6 +80,8 @@ def experiment_fn(run_config, params):
         save_checkpoints_steps=params.min_eval_frequency)
     estimator = get_estimator(run_config, params)
     # Setup data loaders
+    if params.run_preprocess:
+        print('Running preprocess')
     datasets = preprocess.get_dataset(params.data_path) if params.run_preprocess else preprocess.preprocess_ego(
         params.data_path)
 
