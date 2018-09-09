@@ -10,9 +10,9 @@ import network
 
 def experiment():
     images = pd.read_csv('data/egohands_data/images.csv', nrows=50, header=None, index_col=None, na_filter=False,
-                         dtype=np.float64, low_memory=False).values[:, 3:]
+                         dtype=np.float32, low_memory=False).values[:, 3:]
     boxes = pd.read_csv('data/egohands_data/boxes.csv', header=None, index_col=None, na_filter=False,
-                        dtype=np.float64, low_memory=False).values[:, 1:]
+                        dtype=np.float32, low_memory=False).values[:, 1:]
 
     img = Image.fromarray(images[0].reshape(640, 360).T * 255).convert('LA')
     draw = ImageDraw.Draw(img)

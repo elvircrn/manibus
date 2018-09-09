@@ -18,3 +18,5 @@ TEST_SCOPE = 'Test_data'
 
 LABELS = [str(i) for i in range(N_CLASSES)]
 
+N_ROWS = 64
+LOW_MEMORY = False

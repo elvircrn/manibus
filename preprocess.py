@@ -29,21 +29,21 @@ def convert_boxes(img_count, boxes_raw):
 
         padded = np.c_[1, box.reshape(1, 4), 1]
         new_boxes[int(img_id), int(box[0] / stride), int(box[1] / stride)] = np.tile(padded, anchors)
-    return new_boxes
+    return new_boxes.astype(np.float32)
 
 
 def preprocess_ego(data_path=data.DATA_PATH):
-    images_raw = pd.read_csv(os.path.join(data_path, data.RAW_IMAGES), nrows=1024, header=None, index_col=None,
+    images_raw = pd.read_csv(os.path.join(data_path, data.RAW_IMAGES), nrows=data.N_ROWS, header=None, index_col=None,
                              na_filter=False,
-                             dtype=np.float64, low_memory=False)
+                             dtype=np.float32, low_memory=data.LOW_MEMORY)
     images = images_raw.values[:, 3:]
 
     print('Loaded raw images')
 
     # boxes_raw.groupby(by=0).size().max() ~ 4
-    boxes_raw = pd.read_csv(os.path.join(data_path, data.RAW_LABELS), header=None, index_col=None, na_filter=False,
-                            dtype=np.float64,
-                            low_memory=False)
+    boxes_raw = pd.read_csv(os.path.join(data_path, data.RAW_LABELS), header=None, index_col=None, na_filter=False, nrows = data.N_ROWS,
+                            dtype=np.float32,
+                            low_memory=data.LOW_MEMORY)
 
     boxes = convert_boxes(images.shape[0], boxes_raw)
 

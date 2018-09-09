@@ -58,20 +58,13 @@ def eager_hack():
     run_and_get_loss(params, get_run_config())
 
 
-mid = 0
-
 
 def objective(args):
-    # TODO: Refactor later
-    global mid
-
     params = get_experiment_params()
     params.learning_rate = args['learn_rate']
     params.dropout = args['dropout']
-    mid += 1
     run_config = get_run_config(mid)
-    loss = run_and_get_loss(params, run_config)
-
+    loss = run_and_get_loss(params, run_config) 
     return loss
 
 
@@ -133,9 +126,9 @@ def calculate_loss(labels, predictions):
         return tf.slice(t, [0, 0, 0, 4], [-1, -1, -1, 1])
 
     obj = tf.reduce_sum(labels, 3)
-    obj = tf.cast(tf.greater(obj, 0), dtype=tf.float64)
+    obj = tf.cast(tf.greater(obj, 0), dtype=tf.float32)
     obj = tf.reshape(obj, [-1, 17, 10, 1])
-    noobj = tf.subtract(tf.constant(1, dtype=tf.float64), obj)
+    noobj = tf.subtract(tf.constant(1, dtype=tf.float32), obj)
 
     center_loss = tf.reduce_sum(
         tf.multiply(obj, tf.add(tf.square(tf.subtract(x_i(labels), x_i(predictions))),
