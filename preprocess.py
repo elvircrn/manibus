@@ -13,12 +13,8 @@ def split(features, labels, set_distribution=data.SET_DISTRIBUTION):
 
 
 def convert_boxes(img_count, boxes_raw):
-    # Center b_x and b_y, leave width and height as is
-    img_w, img_h = 640, 360
-    stride = 40
-    stride_w, stride_h = int(img_w / stride) + 1, int(img_h / stride) + 1
     anchors = 1
-    new_boxes = np.zeros((img_count, stride_w, stride_h, anchors * 6))
+    new_boxes = np.zeros((img_count, data.STRIDE_W, data.STRIDE_H, anchors * 6))
     for box_raw in boxes_raw.values:
         img_id = box_raw[0]
         if img_count == img_id:
@@ -28,8 +24,8 @@ def convert_boxes(img_count, boxes_raw):
         box[1] = box[1] + box[3] / 2
 
         padded = np.c_[1, box.reshape(1, 4), 1]
-        new_boxes[int(img_id), int(box[0] / stride), int(box[1] / stride)] = np.tile(padded, anchors)
-    return new_boxes.astype(np.float32)
+        new_boxes[int(img_id), int(box[0] / data.STRIDE), int(box[1] / data.STRIDE)] = np.tile(padded, anchors)
+    return new_boxes
 
 
 def preprocess_ego(data_path=data.DATA_PATH):

@@ -8,7 +8,8 @@ from tensorflow.python.client import device_lib
 import architectures as arch
 import data
 import preprocess
-
+import threading
+import random
 
 def get_run_config(model_id=None):
     if model_id is None:
@@ -30,7 +31,15 @@ def get_flags():
     return tf.app.flags.FLAGS
 
 
+def random_sample(images):
+    # tf.enable_eager_execution()
+    # result = arch.yolo_arch_fast_020(inputs=random.choice(images))
+    return
+
+
 def run_and_get_loss(params, run_config):
+    # dataset = preprocess.get_dataset(data.DATA_PATH)
+    # threading.Thread(target=lambda: random_sample(dataset))
     runner = learn_runner.run(
         experiment_fn=experiment_fn,
         run_config=run_config,
@@ -45,7 +54,7 @@ def get_experiment_params(data_path=data.DATA_PATH):
         learning_rate=0.00002,
         train_steps=90000,
         min_eval_frequency=50,
-        architecture=arch.yolo_arch_fast,
+        architecture=arch.yolo_arch_fast_020,
         dropout=0.6,
         run_preprocess=True,
         data_path=data_path
@@ -127,7 +136,7 @@ def calculate_loss(labels, predictions):
 
     obj = tf.reduce_sum(labels, 3)
     obj = tf.cast(tf.greater(obj, 0), dtype=tf.float32)
-    obj = tf.reshape(obj, [-1, 17, 10, 1])
+    obj = tf.reshape(obj, [-1, data.STRIDE_W, data.STRIDE_H, 1])
     noobj = tf.subtract(tf.constant(1, dtype=tf.float32), obj)
 
     center_loss = tf.reduce_sum(
@@ -144,6 +153,9 @@ def calculate_loss(labels, predictions):
 
     loss = tf.add(center_loss, size_loss)
     loss = tf.add(loss, classification_loss)
+
+
+    loss = tf.Print(loss, [loss], 'Loss: ')
 
     return loss
 
