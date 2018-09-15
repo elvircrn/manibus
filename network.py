@@ -2,21 +2,15 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.learn import ModeKeys
 from tensorflow.contrib.learn import learn_runner
-
 from tensorflow.python.client import device_lib
 
 import architectures as arch
 import data
 import preprocess
-import threading
-import random
 
-def get_run_config(model_id=None):
-    if model_id is None:
-        run_config = tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir)
-    else:
-        run_config = tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir + str(model_id))
-    return run_config
+
+def get_run_config():
+    return tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir)
 
 
 # Run only once in main
@@ -67,13 +61,12 @@ def eager_hack():
     run_and_get_loss(params, get_run_config())
 
 
-
 def objective(args):
     params = get_experiment_params()
     params.learning_rate = args['learn_rate']
     params.dropout = args['dropout']
-    run_config = get_run_config(mid)
-    loss = run_and_get_loss(params, run_config) 
+    run_config = get_run_config()
+    loss = run_and_get_loss(params, run_config)
     return loss
 
 
@@ -153,7 +146,6 @@ def calculate_loss(labels, predictions):
 
     loss = tf.add(center_loss, size_loss)
     loss = tf.add(loss, classification_loss)
-
 
     loss = tf.Print(loss, [loss], 'Loss: ')
 

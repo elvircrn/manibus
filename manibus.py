@@ -5,8 +5,9 @@ import pandas as pd
 from PIL import Image, ImageDraw
 
 import data
+import architectures as arch
 import network
-
+import tensorflow as tf
 
 def experiment():
     images = pd.read_csv('data/egohands_data/images.csv', nrows=50, header=None, index_col=None, na_filter=False,
@@ -28,3 +29,7 @@ if __name__ == '__main__':
     data_path = sys.argv[1] if len(sys.argv) > 1 else data.DATA_PATH
     print('Data path: ', data_path)
     network.run_network(data_path)
+    # print(
+    #     arch.yolo_arch_fast_020([], False, 0.0)
+    # )
+

@@ -37,13 +37,14 @@ def preprocess_ego(data_path=data.DATA_PATH):
     print('Loaded raw images')
 
     # boxes_raw.groupby(by=0).size().max() ~ 4
-    boxes_raw = pd.read_csv(os.path.join(data_path, data.RAW_LABELS), header=None, index_col=None, na_filter=False, nrows = data.N_ROWS,
+    boxes_raw = pd.read_csv(os.path.join(data_path, data.RAW_LABELS), header=None, index_col=None, na_filter=False,
+                            nrows=data.N_ROWS,
                             dtype=np.float32,
                             low_memory=data.LOW_MEMORY)
 
     boxes = convert_boxes(images.shape[0], boxes_raw)
 
-    return split(*helpers.unison_shuffled_copies(images, boxes))
+    return split(*helpers.unison_shuffled_copies(images.astype(np.float32), boxes.astype(np.float32)))
 
 
 def get_dataset(data_path=data.DATA_PATH):
