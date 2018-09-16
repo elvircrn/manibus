@@ -10,7 +10,9 @@ import preprocess
 
 
 def get_run_config():
-    return tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir)
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    return tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir, session_config=config)
 
 
 # Run only once in main
@@ -48,7 +50,7 @@ def get_experiment_params(data_path=data.DATA_PATH):
         learning_rate=0.00002,
         train_steps=90000,
         min_eval_frequency=50,
-        architecture=arch.yolo_arch_fast_020,
+        architecture=arch.yolo_ar,
         dropout=0.6,
         run_preprocess=True,
         data_path=data_path
