@@ -7,6 +7,7 @@ from tensorflow.python.client import device_lib
 import architectures as arch
 import data
 import preprocess
+import os
 
 
 def get_run_config():
@@ -17,6 +18,7 @@ def get_run_config():
 
 # Run only once in main
 def initialize_flags(model_dir=data.MODEL_DIR):
+    model_dir += os.sep + 'log0'
     tf.logging.set_verbosity(tf.logging.DEBUG)
     tf.app.flags.DEFINE_string(
         flag_name='model_dir', default_value=model_dir,
