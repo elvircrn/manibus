@@ -16,10 +16,10 @@ def get_run_config():
 
 
 # Run only once in main
-def initialize_flags():
+def initialize_flags(model_dir=data.MODEL_DIR):
     tf.logging.set_verbosity(tf.logging.DEBUG)
     tf.app.flags.DEFINE_string(
-        flag_name='model_dir', default_value=data.MODEL_DIR,
+        flag_name='model_dir', default_value=model_dir,
         docstring='Output directory for model and training stats.')
 
 
@@ -49,7 +49,7 @@ def get_experiment_params(data_path=data.DATA_PATH):
     return tf.contrib.training.HParams(
         learning_rate=0.00002,
         train_steps=90000,
-        min_eval_frequency=50,
+        min_eval_frequency=200,
         architecture=arch.yolo_arch_slow_020,
         dropout=0.6,
         run_preprocess=True,
@@ -83,9 +83,9 @@ def experiment_fn(run_config, params):
         params.data_path)
 
     train_input_fn, train_input_hook = get_train_inputs(
-        batch_size=64, datasets=datasets)
+        batch_size=data.BATCH_SIZE, datasets=datasets)
     eval_input_fn, eval_input_hook = get_test_inputs(
-        batch_size=64, datasets=datasets)
+        batch_size=data.BATCH_SIZE, datasets=datasets)
     # Define the experiment
     experiment = tf.contrib.learn.Experiment(
         estimator=estimator,  # Estimator
@@ -280,13 +280,13 @@ def run_network(data_path=data.DATA_PATH):
     if enable_gpu:
         print('Available GPUs: ', get_available_gpus())
         with tf.device("/gpu:0"):
-            initialize_flags()
+            initialize_flags(data_path)
             tf.app.run(
                 main=run_experiment,
                 argv=[data_path]
             )
     else:
-        initialize_flags()
+        initialize_flags(data_path)
         tf.app.run(
             main=run_experiment,
             argv=[data_path]
