@@ -121,7 +121,7 @@ def yolo_arch_fast_020(inputs, is_training, dropout, scope=data.DEFAULT_SCOPE):
             # net = slim.max_pool2d(net, 2, stride=2, scope='pool4')
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout4')
 
-            net = slim.conv2d(net, 6, [5, 1], padding='VALID', scope='conv5')
+            net = slim.conv2d(net, 6, [6, 2], padding='VALID', scope='conv5')
             # net = slim.max_pool2d(net, 2, stride=2, scope='pool4')
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout5')
 
@@ -159,7 +159,7 @@ def yolo_arch_slow_020(inputs, is_training, dropout, scope=data.DEFAULT_SCOPE):
             # net = slim.max_pool2d(net, 2, stride=2, scope='pool4')
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout4')
 
-            net = slim.conv2d(net, 6, [5, 1], padding='VALID', scope='conv5')
+            net = slim.conv2d(net, 6, [6, 2], padding='VALID', scope='conv5')
             # net = slim.max_pool2d(net, 2, stride=2, scope='pool4')
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout5')
 
