@@ -46,8 +46,8 @@ while True:
 
 	cv2.imshow('img2', np.multiply(img2, mask))
 
-	input = cv2.resize(img2, (28, 28))
-	predictions = net.predict(estimator, input)
+	_input = cv2.resize(img2, (28, 28))
+	predictions = net.predict(estimator, _input.flatten().reshape(784, 1))
 	print(predictions)
 
 	
