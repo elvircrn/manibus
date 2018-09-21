@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import normalize
 
 import data
 import helpers
@@ -22,7 +21,7 @@ def preprocess(data_path=data.DATA_PATH):
     labels = dataset.T[0]
     features = (dataset.T[1:]).T
 
-    features = normalize(features, axis=0, norm='max')
+    features = features / features.max()
 
     features, labels = helpers.unison_shuffled_copies(features, labels)
     one_hot_labels = np.zeros((len(labels), data.HANDS_N_CLASSES), dtype=np.float32)
