@@ -11,8 +11,9 @@ import os
 
 
 def get_run_config():
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
+    config = tf.ConfigProto(gpu_options=gpu_options)
+    config.gpu_options.allow_growth = True 
     return tf.contrib.learn.RunConfig(model_dir=get_flags().model_dir, session_config=config)
 
 
