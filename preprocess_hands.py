@@ -12,7 +12,7 @@ def split(faces, labels, set_distribution=data.SET_DISTRIBUTION):
     return datasets
 
 
-def preprocess(data_path=data.DATA_PATH):
+def preprocess(data_path=data.HANDS_DATA_PATH):
     train_df = pd.read_csv(data_path + os.sep + data.HANDS_TRAIN_NAME)
     test_df = pd.read_csv(data_path + os.sep + data.HANDS_TEST_NAME)
 

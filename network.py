@@ -296,6 +296,6 @@ def run_network(data_path=data.DATA_PATH):
 
 
 def predict(estimator, images):
-    images = np.reshape(images, [-1, data.IMAGE_HEIGHT, data.IMAGE_WIDTH, 1]).astype(dtype=np.float32)
+    images = np.reshape(images, [-1, data.IMAGE_WIDTH, data.IMAGE_HEIGHT, 1]).astype(dtype=np.float32)
     predictions = estimator.predict(input_fn=lambda: images)
     return predictions

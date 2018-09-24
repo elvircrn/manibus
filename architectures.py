@@ -26,7 +26,6 @@ def hands_mini_vgg(inputs, is_training, dropout, scope=data.DEFAULT_SCOPE):
             net = slim.fully_connected(net, data.HANDS_N_CLASSES, activation_fn=None, scope='fc1')
 
             net = slim.softmax(net, scope='sm1')
-
         return net
 
 
@@ -131,25 +130,25 @@ def yolo_arch_slow_020(inputs, is_training, dropout, scope=data.DEFAULT_SCOPE):
                 weights_initializer=tf.contrib.layers.xavier_initializer(),
                 activation_fn=tf.nn.relu):
             # 256x144
-            net = slim.repeat(inputs, 1, slim.conv2d, 16, [3, 3], padding='VALID', scope='conv1')
+            net = slim.repeat(inputs, 1, slim.conv2d, 32, [3, 3], padding='VALID', scope='conv1')
             # / 2
             net = slim.max_pool2d(net, 2, stride=2, scope='pool1')
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout1')
             # 128x72
 
-            net = slim.repeat(net, 1, slim.conv2d, 16, [3, 3], padding='VALID', scope='conv2')
+            net = slim.repeat(net, 1, slim.conv2d, 32, [3, 3], padding='VALID', scope='conv2')
             # / 2
             net = slim.max_pool2d(net, 1, stride=2, scope='pool2')
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout2')
             # 64x36
 
-            net = slim.repeat(net, 3, slim.conv2d, 32, [3, 3], padding='VALID', scope='conv3')
+            net = slim.repeat(net, 3, slim.conv2d, 64, [3, 3], padding='VALID', scope='conv3')
             # / 2
             net = slim.max_pool2d(net, 2, stride=2, scope='pool3')
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout3')
             # 32x18
 
-            net = slim.repeat(net, 3, slim.conv2d, 32, [3, 2], padding='VALID', scope='conv4')
+            net = slim.repeat(net, 3, slim.conv2d, 64, [3, 2], padding='VALID', scope='conv4')
             # net = slim.max_pool2d(net, 2, stride=2, scope='pool4')
             net = slim.dropout(net, keep_prob=dropout, is_training=is_training, scope='dropout4')
 
@@ -160,7 +159,6 @@ def yolo_arch_slow_020(inputs, is_training, dropout, scope=data.DEFAULT_SCOPE):
             net = slim.softmax(net, scope='sm1')
 
     return net
-
 
 
 def yolo_arch_slow(inputs, is_training, dropout, scope=data.DEFAULT_SCOPE):
